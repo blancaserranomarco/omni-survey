@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSupabase } from '@/lib/supabase';
+import { getSubmissions } from '@/lib/db';
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get('x-admin-password');
@@ -8,22 +8,13 @@ export async function GET(req: Request) {
   }
 
   const url = new URL(req.url);
-  const persona = url.searchParams.get('persona');
+  const persona = url.searchParams.get('persona') || undefined;
 
-  let query = getSupabase()
-    .from('submissions')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (persona) {
-    query = query.eq('persona_name', persona);
+  try {
+    const data = await getSubmissions(persona);
+    return NextResponse.json({ submissions: data });
+  } catch (err) {
+    console.error('Admin submissions error:', err);
+    return NextResponse.json({ error: 'Error fetching submissions' }, { status: 500 });
   }
-
-  const { data, error } = await query;
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ submissions: data });
 }

@@ -16,6 +16,11 @@ export async function sendSubmissionEmail(params: {
   pdfBuffer: Buffer;
   jsonData: string;
 }) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('[email] RESEND_API_KEY is not set — skipping submission email.');
+    return;
+  }
+
   const { participantId, personaName, name, email, pdfBuffer, jsonData } = params;
   const organizerEmail = process.env.ORGANIZER_EMAIL!;
 
